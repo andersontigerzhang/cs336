@@ -7,6 +7,9 @@ from functools import reduce
 import logging
 from collections import Counter,defaultdict
 from cs336_basics.pretokenization_example import find_chunk_boundaries
+import tqdm
+
+logging.basicConfig(level=logging.INFO)
 
 def process_chunk(file: BinaryIO | str, start: int, end: int, special_tokens: list[str]) -> Counter:
     """
@@ -47,16 +50,6 @@ def merge_pair(word, pair, replacement):
             i += 1
     return tuple(result)
 
-def change_byte_pair_frequencies(pair_freqs: Counter, 
-                                 pair_to_tok: dict[tuple[bytes, bytes], set[tuple[bytes, ...]]], 
-                                 pair: tuple[bytes, bytes], add=True):
-    for token in pair_to_tok[pair]:
-        pair_cnts = Counter(zip(token, token[1:]))
-        if add:
-            pass
-        else:
-            pass
-
 def train_bpe(input_path: str | os.PathLike, 
               vocab_size: int,
               special_tokens: list[str]) -> tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
@@ -93,7 +86,9 @@ def train_bpe(input_path: str | os.PathLike,
             results = [f.result() for f in futures_list]
         pretoks = reduce(lambda d, src: d.update(src) or d, results, Counter())
     
+    logging.info(f"Building vacabulary...")
     pair_freqs, pair_to_tok = build_byte_pair_frequencies(pretoks)
+    pbar = tqdm.tqdm(total=vocab_size)
     while current_vocab_size < vocab_size:
         if not pair_freqs:
             break
@@ -103,6 +98,8 @@ def train_bpe(input_path: str | os.PathLike,
         merges.append(pair)
         vocab[current_vocab_size] = b"".join(pair)
         current_vocab_size += 1
+        pbar.update(1)
+
         tokens_to_merge = pair_to_tok[pair].copy() # tokens that contain the pair to merge
         add_back: defaultdict[tuple[bytes, ...], int] = defaultdict(int)
         for token in tokens_to_merge:
@@ -128,6 +125,7 @@ def train_bpe(input_path: str | os.PathLike,
                 pair_to_tok[pk].add(k)
                 pair_freqs[pk] = pair_freqs.get(pk, 0) + v * pairs_in_k[pk]
         # pair_freqs1, pair_to_tok1 = build_byte_pair_frequencies(pretoks)
+    pbar.close()
     return vocab, merges
 
 if __name__ == "__main__":
