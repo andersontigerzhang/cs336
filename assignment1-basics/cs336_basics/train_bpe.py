@@ -67,7 +67,7 @@ def train_bpe(input_path: str | os.PathLike,
 
     merges: list[tuple[bytes, bytes]] = []
 
-    num_workers = min(os.cpu_count() or 1, 4)  # Use up to 4 workers
+    num_workers = min(os.cpu_count()*2 or 1, 4)  # Use up to 4 workers
 
     fsize = os.path.getsize(input_path)
     num_chunks = max(1, fsize // (1 * 1024 * 1024))  # Aim for ~10MB per chunk
@@ -124,7 +124,6 @@ def train_bpe(input_path: str | os.PathLike,
             for pk in pairs_in_k:
                 pair_to_tok[pk].add(k)
                 pair_freqs[pk] = pair_freqs.get(pk, 0) + v * pairs_in_k[pk]
-        # pair_freqs1, pair_to_tok1 = build_byte_pair_frequencies(pretoks)
     pbar.close()
     return vocab, merges
 
