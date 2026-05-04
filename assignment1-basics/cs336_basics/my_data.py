@@ -9,7 +9,8 @@ def data_loading(data_set: npt.NDArray[int],
                  device: torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor]:
     starts = np.random.randint(0, data_set.shape[0]-context_length, size=batch_size)
     idx = starts[:,None]+np.arange(context_length)
-    return torch.from_numpy(data_set[idx]).to(device=device), torch.from_numpy(data_set[idx+1]).to(device=device)
+    return torch.from_numpy(data_set[idx]).to(device=device, dtype=torch.int32), \
+                torch.from_numpy(data_set[idx+1]).to(device=device, dtype=torch.int32)
     
 def save_checkpoint(model: torch.nn.Module,
                     optimizer: torch.optim.Optimizer,

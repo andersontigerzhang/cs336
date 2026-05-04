@@ -112,7 +112,7 @@ def run_scaled_dot_product_attention(
     Returns:
         Float[Tensor, " ... queries d_v"]: Output of SDPA
     """
-    return my_nn_models.scaled_dot_product_attention(Q, K, V, mask=mask)
+    return my_nn_functions.scaled_dot_product_attention(Q, K, V, mask=mask)
 
 def run_multihead_self_attention(
     d_model: int,
@@ -150,7 +150,7 @@ def run_multihead_self_attention(
     multihead_attn.load_state_dict({"q_proj.weight": q_proj_weight,
                                     "k_proj.weight": k_proj_weight,
                                     "v_proj.weight": v_proj_weight,
-                                    "o_proj.weight": o_proj_weight
+                                    "output_proj.weight": o_proj_weight
                                 })
     return multihead_attn(in_features)
 
@@ -197,7 +197,7 @@ def run_multihead_self_attention_with_rope(
     multihead_attn.load_state_dict({"q_proj.weight": q_proj_weight,
                                     "k_proj.weight": k_proj_weight,
                                     "v_proj.weight": v_proj_weight,
-                                    "o_proj.weight": o_proj_weight
+                                    "output_proj.weight": o_proj_weight
                                 })
     return multihead_attn(in_features)
 
@@ -411,7 +411,7 @@ def run_rmsnorm(
         RMSNorm of the `in_features`.
     """
     rmsnorm = my_nn_models.RMSNorm(d_model, eps=eps, device=in_features.device, dtype=in_features.dtype)
-    rmsnorm.load_state_dict({"weights": weights.to(device=in_features.device, dtype=in_features.dtype)})
+    rmsnorm.load_state_dict({"weight": weights.to(device=in_features.device, dtype=in_features.dtype)})
     return rmsnorm(in_features)
 
 def run_silu(in_features: Float[Tensor, " ..."]) -> Float[Tensor, " ..."]:
@@ -463,7 +463,7 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
         Float[Tensor, "..."]: Tensor of with the same shape as `in_features` with the output of
         softmax normalizing the specified `dim`.
     """
-    return softmax(in_features, dim=dim)
+    return my_nn_functions.softmax(in_features, dim=dim)
 
 
 def run_cross_entropy(

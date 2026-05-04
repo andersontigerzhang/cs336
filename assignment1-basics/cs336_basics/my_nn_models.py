@@ -53,8 +53,8 @@ class RMSNorm(torch.nn.Module):
 
     def forward(self, x: Float[Tensor, "... d_model"]) -> Float[Tensor, "... d_model"]:
         x1 = x.to(torch.float32)  # to prevent from overflow when computing the norm
-        rms_x = torch.einsum('... d -> ...', x1**2) + self.eps
-        rms_x = torch.sqrt(rms_x/self.d_model)
+        rms_x = torch.einsum('... d -> ...', x1**2)
+        rms_x = torch.sqrt(rms_x/self.d_model + self.eps)
         return (x1 / rms_x.unsqueeze(-1) * self.weight).to(dtype=x.dtype)
         
 class SwiGLU(torch.nn.Module):

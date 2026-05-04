@@ -36,7 +36,7 @@ def scaled_dot_product_attention(q: Float[Tensor, "batch_size ... seq_len d_k"],
 
 def cross_entropy(logits: Float[Tensor, "batch_size ... vocab_size"], 
                   targets: Int[Tensor, "batch_size ... vocab_size"]) -> Float[Tensor, ""]:
-    logits -= reduce(logits, "batch_size ... vocab_size -> batch_size ... 1", "max")
-    denominator = reduce(torch.exp(logits), "batch_size ... vocab_size -> batch_size ... 1", "sum")
-    rez =  torch.log(denominator) - torch.gather(logits, -1, targets[:,None])
+    logits_stable = logits - reduce(logits, "batch_size ... vocab_size -> batch_size ... 1", "max")
+    denominator = reduce(torch.exp(logits_stable), "batch_size ... vocab_size -> batch_size ... 1", "sum")
+    rez =  torch.log(denominator) - torch.gather(logits_stable, -1, targets[:,None])
     return torch.mean(rez)
