@@ -3,7 +3,7 @@ import math
 from io import BytesIO
 from typing import BinaryIO
 from cs336_basics.utils import text_to_pretoks, init_regex
-from concurrent import futures
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import reduce
 import logging
 from collections import Counter,defaultdict
@@ -82,11 +82,12 @@ def train_bpe(input_path: str | os.PathLike,
         # with Pool(processes=num_workers, initializer=init_regex) as pool:
         #     results = pool.starmap(process_chunk, jobs)
         logging.info(f"Processing {len(chunks)-1} chunks with {num_workers} workers...")
-        with futures.ProcessPoolExecutor(max_workers=num_workers, initializer=init_regex) as executor:
+        pretoks = Counter()
+        with ProcessPoolExecutor(max_workers=num_workers, initializer=init_regex) as executor:
             futures_list = [executor.submit(process_chunk, str(input_path), start, end, special_tokens) for start, end in zip(chunks[:-1], chunks[1:])]
-            results = [f.result() for f in futures_list]
-        pretoks = reduce(lambda d, src: d.update(src) or d, results, Counter())
-    
+            for future in tqdm.tqdm(as_completed(futures_list), total=len(futures_list)):
+                pretoks.update(future.result()
+
     logging.info(f"Building vacabulary...")
     pair_freqs, pair_to_tok = build_byte_pair_frequencies(pretoks)
     pbar = tqdm.tqdm(total=vocab_size)
