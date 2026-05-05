@@ -70,7 +70,9 @@ def train_bpe(input_path: str | os.PathLike,
     num_workers = min(os.cpu_count()*2 or 1, 4)  # Use up to 4 workers
 
     fsize = os.path.getsize(input_path)
-    if fsize < 10 * 1024 * 1024:
+    num_chunks = math.ceil(fsize / (20 * 1024 * 1024))  # Aim for ~10MB per chunk
+    chunks = find_chunk_boundaries(open(input_path, "rb"), desired_num_chunks=num_chunks, split_special_token=special_tokens[0].encode("utf-8"))
+    if num_chunks == 1:
         logging.info(f"Processing file in a single chunk...")
         init_regex()
         pretoks = process_chunk(open(input_path, "rb"), 0, fsize, special_tokens)
@@ -78,8 +80,6 @@ def train_bpe(input_path: str | os.PathLike,
         # jobs = [(str(input_path), start, end, special_tokens) for start, end in zip(chunks[:-1], chunks[1:])]
         # with Pool(processes=num_workers, initializer=init_regex) as pool:
         #     results = pool.starmap(process_chunk, jobs)
-        num_chunks = num_workers * 10
-        chunks = find_chunk_boundaries(open(input_path, "rb"), desired_num_chunks=num_chunks, split_special_token=special_tokens[0].encode("utf-8"))
         logging.info(f"Processing {len(chunks)-1} chunks with {num_workers} workers...")
         with futures.ProcessPoolExecutor(max_workers=num_workers, initializer=init_regex) as executor:
             futures_list = [executor.submit(process_chunk, str(input_path), start, end, special_tokens) for start, end in zip(chunks[:-1], chunks[1:])]
@@ -124,6 +124,7 @@ def train_bpe(input_path: str | os.PathLike,
             for pk in pairs_in_k:
                 pair_to_tok[pk].add(k)
                 pair_freqs[pk] = pair_freqs.get(pk, 0) + v * pairs_in_k[pk]
+        # pair_freqs1, pair_to_tok1 = build_byte_pair_frequencies(pretoks)
     pbar.close()
     return vocab, merges
 
