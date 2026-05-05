@@ -86,7 +86,7 @@ def train_bpe(input_path: str | os.PathLike,
         with ProcessPoolExecutor(max_workers=num_workers, initializer=init_regex) as executor:
             futures_list = [executor.submit(process_chunk, str(input_path), start, end, special_tokens) for start, end in zip(chunks[:-1], chunks[1:])]
             for future in tqdm.tqdm(as_completed(futures_list), total=len(futures_list)):
-                pretoks.update(future.result()
+                pretoks.update(future.result())
 
     logging.info(f"Building vacabulary...")
     pair_freqs, pair_to_tok = build_byte_pair_frequencies(pretoks)
