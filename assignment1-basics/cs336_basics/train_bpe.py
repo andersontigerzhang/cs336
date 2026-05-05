@@ -1,4 +1,5 @@
 import os
+import math
 from io import BytesIO
 from typing import BinaryIO
 from cs336_basics.utils import text_to_pretoks, init_regex
