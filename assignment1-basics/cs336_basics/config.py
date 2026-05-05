@@ -39,6 +39,12 @@ class SchedulerConfig:
 
 
 @dataclass
+class WandbConfig:
+    enabled: bool = False
+    project: str = "cs336_hw1"
+
+
+@dataclass
 class TrainConfig:
     max_steps: int = 10000
     batch_size: int = 32
@@ -50,6 +56,7 @@ class TrainConfig:
     log_interval: int = 10
     eval_interval: int = 1000
     checkpoint_interval: int = 5000
+    wandb: WandbConfig = field(default_factory=WandbConfig)
 
 
 @dataclass
@@ -74,6 +81,8 @@ class TrainingConfig:
                 return float(value)
             if key in ("device", "dtype", "project"):
                 return str(value)
+            if key == "enabled":
+                return bool(value)
             if isinstance(value, str):
                 if "." in value or "e" in value.lower():
                     try:
@@ -87,6 +96,9 @@ class TrainingConfig:
             return value
 
         def convert_section(section_cls, section_dict):
+            if section_cls == TrainConfig and "wandb" in section_dict:
+                wandb_dict = section_dict.pop("wandb")
+                section_dict["wandb"] = convert_section(WandbConfig, wandb_dict)
             kwargs = {k: convert_value(k, v) for k, v in section_dict.items()}
             return section_cls(**kwargs)
 

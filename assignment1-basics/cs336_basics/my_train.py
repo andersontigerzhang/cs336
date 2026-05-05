@@ -5,7 +5,9 @@ import time
 import numpy as np
 import torch
 import json
-
+import yaml
+from pathlib import Path
+from dataclasses import asdict
 from cs336_basics import my_nn_models, my_optim, my_data, my_nn_functions
 from cs336_basics.config import get_config
 
@@ -42,7 +44,7 @@ def main(config_path: str = "config_tinystories.yaml"):
     train_dataset = np.memmap(config.data.train_data, dtype=np.uint16, mode="r")
     val_dataset = np.memmap(config.data.val_data, dtype=np.uint16, mode="r")
 
-    run_dir = config.train.output_dir / f"{config.train.project}_{time.strftime('%Y%m%d_%H%M%S')}"
+    run_dir = Path(config.train.output_dir) / f"{config.train.project}_{time.strftime('%Y%m%d_%H%M%S')}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
     checkpoint_dir = run_dir / "checkpoint"
@@ -52,15 +54,13 @@ def main(config_path: str = "config_tinystories.yaml"):
 
     set_all_seed(config.train.seed)
 
-    config_file_path = config_path
-    if os.path.isdir(config_file_path):
-        config_file_path = os.path.join(config_file_path, "config.yaml")
-    import yaml
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
 
-    with open(config_file_path, "r") as f:
-        raw_config = yaml.safe_load(f)
-    with open(run_dir / "config.json", "w") as f:
-        json.dump(raw_config, f, indent=2)
+    run_config = run_dir / "config.yaml"
+    if not run_config.exists():
+        with open(run_config, "w") as f:
+            yaml.dump(asdict(config), f, indent=2)
 
     model = my_nn_models.TransformerLM(
         config.model.vocab_size,
@@ -75,24 +75,30 @@ def main(config_path: str = "config_tinystories.yaml"):
     )
 
     optimizer = my_optim.AdamW(
-        model.parameters(), 
-        lr=config.scheduler.max_learning_rate, 
-        weight_decay=config.optim.weight_decay, 
-        betas=config.optim.betas, 
-        eps=config.optim.eps
+        model.parameters(),
+        lr=config.scheduler.max_learning_rate,
+        weight_decay=config.optim.weight_decay,
+        betas=config.optim.betas,
+        eps=config.optim.eps,
     )
 
     start = 0
+    if config.train.wandb.enabled:
+        import wandb
+        wandb.init(project=config.train.wandb.project, config=config)
 
     if os.path.exists(checkpoint_file):
         start = my_data.run_load_checkpoint(checkpoint_file, model, optimizer)
 
     torch.autograd.set_detect_anomaly(True)
     for t in range(start, config.train.max_steps):
-        lr = my_optim.learning_rate_schedule(t, config.scheduler.max_learning_rate, 
-                                             config.scheduler.min_learning_rate, 
-                                             config.scheduler.warmup_iters, 
-                                             config.scheduler.cosine_cycle_iters)
+        lr = my_optim.learning_rate_schedule(
+            t,
+            config.scheduler.max_learning_rate,
+            config.scheduler.min_learning_rate,
+            config.scheduler.warmup_iters,
+            config.scheduler.cosine_cycle_iters,
+        )
         my_optim.set_learning_rate(optimizer, lr)
         x, y = my_data.data_loading(train_dataset, config.train.batch_size, config.model.context_length, device)
         logits = model(x)
@@ -104,15 +110,19 @@ def main(config_path: str = "config_tinystories.yaml"):
 
         if (t + 1) % config.train.log_interval == 0:
             print(f"Step {t + 1}: loss = {loss.item():.4f}, lr = {lr:.2e}")
+            if config.train.wandb.enabled:
+                wandb.log({"loss": loss.item(), "lr": lr, "iteration": t + 1})
 
         if (t + 1) % config.train.eval_interval == 0:
             val_loss = 0.0
             for _ in range(10):
-                x, y = my_data.data_loading(val_dataset, batch_size, context_length, device)
+                x, y = my_data.data_loading(val_dataset, config.train.batch_size, config.model.context_length, device)
                 logits = model(x)
                 val_loss += my_nn_functions.cross_entropy(logits, y).item()
             val_loss /= 10
             print(f"Step {t + 1}: val_loss = {val_loss:.4f}")
+            if config.train.wandb.enabled:
+                wandb.log({"val_loss": val_loss, "lr": lr, "iteration": t + 1})
             if val_loss < best_val:
                 best_val = val_loss
                 my_data.save_checkpoint(model, optimizer, t + 1, best_checkpoint_file)

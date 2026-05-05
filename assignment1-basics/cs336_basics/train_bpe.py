@@ -8,7 +8,7 @@ from functools import reduce
 import logging
 from collections import Counter,defaultdict
 from cs336_basics.pretokenization_example import find_chunk_boundaries
-import tqdm
+from tqdm.auto import tqdm
 
 logging.basicConfig(level=logging.INFO)
 
@@ -71,7 +71,7 @@ def train_bpe(input_path: str | os.PathLike,
     num_workers = min(os.cpu_count()*2 or 1, 4)  # Use up to 4 workers
 
     fsize = os.path.getsize(input_path)
-    num_chunks = math.ceil(fsize / (20 * 1024 * 1024))  # Aim for ~10MB per chunk
+    num_chunks = math.ceil(fsize / (50 * 1024 * 1024))  # Aim for ~10MB per chunk
     chunks = find_chunk_boundaries(open(input_path, "rb"), desired_num_chunks=num_chunks, split_special_token=special_tokens[0].encode("utf-8"))
     if num_chunks == 1:
         logging.info(f"Processing file in a single chunk...")
@@ -85,12 +85,12 @@ def train_bpe(input_path: str | os.PathLike,
         pretoks = Counter()
         with ProcessPoolExecutor(max_workers=num_workers, initializer=init_regex) as executor:
             futures_list = [executor.submit(process_chunk, str(input_path), start, end, special_tokens) for start, end in zip(chunks[:-1], chunks[1:])]
-            for future in tqdm.tqdm(as_completed(futures_list), total=len(futures_list)):
+            for future in tqdm(as_completed(futures_list), total=len(futures_list)):
                 pretoks.update(future.result())
 
     logging.info(f"Building vacabulary...")
     pair_freqs, pair_to_tok = build_byte_pair_frequencies(pretoks)
-    pbar = tqdm.tqdm(total=vocab_size)
+    pbar = tqdm(total=vocab_size)
     while current_vocab_size < vocab_size:
         if not pair_freqs:
             break
