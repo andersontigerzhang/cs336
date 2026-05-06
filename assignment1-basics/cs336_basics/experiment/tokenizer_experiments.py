@@ -54,7 +54,6 @@ def encode_file(tokenizer: Tokenizer, args):
                 n = 0
         output.write(buffer[:n].tobytes())
 
-
 def decode_file(tokenizer: Tokenizer, args):
     logging.info(f"decoding input {args.input}")
 
@@ -86,7 +85,7 @@ def decode_file(tokenizer: Tokenizer, args):
             probs = my_nn_functions.softmax(topk_logits, dim=-1)
             token = topk_indices.gather(-1, torch.multinomial(probs, 1))
             tokens[:, i] = token.squeeze(-1)
-    print(tokenizer.decode(tokens[0,:i+1].tolist()))
+    return tokenizer.decode(tokens[0,:i+1].tolist())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -126,6 +125,8 @@ if __name__ == "__main__":
     elif args.command == "encode_file":
         encode_file(tokenizer, args)
     elif args.command == "decode":
-        decode_file(tokenizer, args)
+        decoded = ecode_file(tokenizer, args)
+        print(f"Prompt: {args.input}")
+        print(f"Decoded:\n{decoded}")
     else:
         parser.print_help()
