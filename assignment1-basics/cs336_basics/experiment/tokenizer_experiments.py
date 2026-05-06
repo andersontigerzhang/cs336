@@ -121,12 +121,12 @@ if __name__ == "__main__":
 
     if args.command == "calc_compression":
         ratio, total_bytes, total_tokens = calc_compression(tokenizer, args)
-        print(f"compression ratio for {args.input} with {args.vocab} and {args.merge}: {ratio:.4f}")
+        logging.info(f"compression ratio for {args.input} with {args.vocab} and {args.merge}: {ratio:.4f}")
     elif args.command == "encode_file":
         encode_file(tokenizer, args)
     elif args.command == "decode":
         decoded = ecode_file(tokenizer, args)
-        print(f"Prompt: {args.input}")
-        print(f"Decoded:\n{decoded}")
+        logging.info(f"Prompt: {args.input}")
+        logging.info(f"Decoded:\n{decoded}")
     else:
         parser.print_help()
