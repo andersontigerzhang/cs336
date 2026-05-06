@@ -32,7 +32,7 @@ train:
   project: cs336_hw1
   output_dir: output
   checkpoint_dir: output/checkpoints
-  log_interval: 10
+  log_interval: 50
   eval_interval: 1000
   checkpoint_interval: 5000
   wandb:
