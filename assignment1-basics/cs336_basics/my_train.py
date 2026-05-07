@@ -32,7 +32,7 @@ def get_dtype(dtype_str: str) -> torch.dtype:
     return dtype_map.get(dtype_str, torch.float32)
 
 
-def get_config(config_path: str = "config_tinystories.yaml"):
+def get_default_config(config_path: str = "config_tinystories.yaml"):
     if os.path.isdir(config_path):
         config = get_config(os.path.join(config_path, "config.yaml"))
     else:
@@ -140,5 +140,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config_tinystories.yaml", help="Path to config file")
     args = parser.parse_args()
-    config = get_config(args.config)
+    config = get_default_config(args.config)
     main(config)
