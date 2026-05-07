@@ -32,13 +32,16 @@ def get_dtype(dtype_str: str) -> torch.dtype:
     return dtype_map.get(dtype_str, torch.float32)
 
 
-def main(config_path: str = "config_tinystories.yaml"):
-    torch.set_float32_matmul_precision('high')
+def get_config(config_path: str = "config_tinystories.yaml"):
+    torch.set_float32_matmul_precision("high")
     if os.path.isdir(config_path):
         config = get_config(os.path.join(config_path, "config.yaml"))
     else:
         config = get_config(config_path)
+    return config
 
+
+def main(config):
     device = "cuda" if config.model.device == "cuda" and torch.cuda.is_available() else "cpu"
     my_dtype = get_dtype(config.model.dtype)
 
@@ -86,7 +89,8 @@ def main(config_path: str = "config_tinystories.yaml"):
     start = 0
     if config.train.wandb.enabled:
         import wandb
-        wandb.init(project=config.train.wandb.project, config=config)
+
+        wandb.init(project=config.train.wandb.project, name=config.train.wandb.name, config=config)
 
     if os.path.exists(checkpoint_file):
         start = my_data.run_load_checkpoint(checkpoint_file, model, optimizer)
@@ -130,10 +134,12 @@ def main(config_path: str = "config_tinystories.yaml"):
 
         if (t + 1) % config.train.checkpoint_interval == 0:
             my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
+        my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config_tinystories.yaml", help="Path to config file")
     args = parser.parse_args()
-    main(args.config)
+    config = get_config(args.config)
+    main(config)

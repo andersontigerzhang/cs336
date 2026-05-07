@@ -42,6 +42,7 @@ class SchedulerConfig:
 class WandbConfig:
     enabled: bool = False
     project: str = "cs336_hw1"
+    name: Optional[str] = None
 
 
 @dataclass
