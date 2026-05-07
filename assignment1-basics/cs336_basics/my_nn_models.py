@@ -212,7 +212,7 @@ class TransformerLM(torch.nn.Module):
                  device: torch.device | None = None,
                  dtype: torch.dtype | None = None):
         super().__init__()
-        self.token_embeddings = Embedding(vocab_size, d_model)
+        self.token_embeddings = Embedding(vocab_size, d_model, device=device, dtype=dtype)
         self.layers = torch.nn.Sequential()
         for _ in range(num_layers):
             self.layers.append(TransformerBlock(d_model, 
