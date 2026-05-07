@@ -224,7 +224,7 @@ class TransformerLM(torch.nn.Module):
                                         dtype=dtype))
         self.num_layers = num_layers
         self.ln_final = RMSNorm(d_model, device=device, dtype=dtype)
-        self.lm_head = Linear(d_model, vocab_size)
+        self.lm_head = Linear(d_model, vocab_size, device=device, dtype=dtype)
 
     def forward(self, x: Int[Tensor, "... batch_size seq_len"]) -> Float[Tensor, "... batch_size seq_len vocab_size"]:
         x = self.token_embeddings(x)
