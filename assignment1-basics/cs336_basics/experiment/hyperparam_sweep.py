@@ -11,7 +11,6 @@ def main():
 
     config = my_train.get_config()
 
-
     if args.command == "lr":
         for val in args.values:
             config.train.wandb.name = f"sweep_{args.command}_{val}}"
@@ -26,7 +25,6 @@ def main():
             config.train.batch_size = val
             print(f"Running with batch_size={val}")
             my_train.main(config)
-
 
 if __name__ == "__main__":
     main()
