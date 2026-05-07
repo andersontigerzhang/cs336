@@ -73,7 +73,7 @@ def main(config_path: str = "config_tinystories.yaml"):
         device=device,
         dtype=my_dtype,
     )
-
+    model = torch.compile(model)
     optimizer = my_optim.AdamW(
         model.parameters(),
         lr=config.scheduler.max_learning_rate,
