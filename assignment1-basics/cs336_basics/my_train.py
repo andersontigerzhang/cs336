@@ -33,7 +33,6 @@ def get_dtype(dtype_str: str) -> torch.dtype:
 
 
 def get_config(config_path: str = "config_tinystories.yaml"):
-    torch.set_float32_matmul_precision("high")
     if os.path.isdir(config_path):
         config = get_config(os.path.join(config_path, "config.yaml"))
     else:
