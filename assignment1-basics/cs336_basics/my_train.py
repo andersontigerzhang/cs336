@@ -35,20 +35,20 @@ def get_dtype(dtype_str: str) -> torch.dtype:
 def get_default_config(config_path: str = "config_tinystories.yaml"):
     if os.path.isdir(config_path):
         config = get_config(os.path.join(config_path, "config.yaml"))
+        run_dir = Path(config_path)
     else:
         config = get_config(config_path)
-    return config
+        run_dir = Path(config.train.output_dir) / f"{config.train.project}_{time.strftime('%Y%m%d_%H%M%S')}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+    return config, run_dir
 
 
-def main(config):
+def main(config, run_dir):
     device = "cuda" if config.model.device == "cuda" and torch.cuda.is_available() else "cpu"
     my_dtype = get_dtype(config.model.dtype)
 
     train_dataset = np.memmap(config.data.train_data, dtype=np.uint16, mode="r")
     val_dataset = np.memmap(config.data.val_data, dtype=np.uint16, mode="r")
-
-    run_dir = Path(config.train.output_dir) / f"{config.train.project}_{time.strftime('%Y%m%d_%H%M%S')}"
-    run_dir.mkdir(parents=True, exist_ok=True)
 
     checkpoint_dir = run_dir / "checkpoint"
     checkpoint_file = checkpoint_dir / "checkpoint.pt"
@@ -76,7 +76,7 @@ def main(config):
         device=device,
         dtype=my_dtype,
     )
-    model = torch.compile(model)
+    # model = torch.compile(model)
     optimizer = my_optim.AdamW(
         model.parameters(),
         lr=config.scheduler.max_learning_rate,
@@ -93,8 +93,9 @@ def main(config):
 
     if os.path.exists(checkpoint_file):
         start = my_data.run_load_checkpoint(checkpoint_file, model, optimizer)
+        print(f"Loading checkpoint from {checkpoint_file}, starting from step {start}")
 
-    torch.autograd.set_detect_anomaly(True)
+    # torch.autograd.set_detect_anomaly(True)
     for t in range(start, config.train.max_steps):
         lr = my_optim.learning_rate_schedule(
             t,
@@ -140,5 +141,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config_tinystories.yaml", help="Path to config file")
     args = parser.parse_args()
-    config = get_default_config(args.config)
-    main(config)
+    config, run_dir = get_default_config(args.config)
+    main(config, run_dir)

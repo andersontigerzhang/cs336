@@ -66,7 +66,7 @@ class SwiGLU(torch.nn.Module):
         
         super().__init__()
         if d_ff is None:
-            d_ff = 64 * (d_model * 8/3 // 64)
+            d_ff = int(64 * (d_model * 8/3 // 64))
         self.w1 = Linear(d_model, d_ff, device=device, dtype=dtype)
         self.w2 = Linear(d_ff, d_model, device=device, dtype=dtype)
         self.w3 = Linear(d_model, d_ff, device=device, dtype=dtype)
@@ -162,12 +162,13 @@ class MultiHeadAttention(torch.nn.Module):
             if token_positions is None:
                 pos = torch.arange(x.shape[-2], device=x.device)
             else:
-                pos = token_positions.to(device=x.device, dtype=x.dtype)
+                pos = token_positions.to(device=x.device)
             q = self.rope(q, token_positions=pos)
             k = self.rope(k, token_positions=pos)
 
-        mask_dim = x.shape[-2]
-        mask = torch.tril(torch.ones(mask_dim,mask_dim, device=x.device, dtype=torch.bool))
+        *batch_dim, seq_len, d_model = q.size()
+        mask = torch.tril(torch.ones(seq_len,seq_len, device=x.device, dtype=torch.bool))
+        mask = mask.__getitem__((None,) * len(batch_dim) + (...,))
         attn = my_nn_functions.scaled_dot_product_attention(q,k,v,mask=mask)
         attn = rearrange(attn, '... h seq_len d_k -> ... seq_len (h d_k)')
         return self.output_proj(attn)
@@ -218,7 +219,7 @@ class TransformerLM(torch.nn.Module):
             self.layers.append(TransformerBlock(d_model, 
                                         num_heads, 
                                         d_ff=d_ff, 
-                                        max_seq_len=vocab_size, 
+                                        max_seq_len=context_length, 
                                         theta=rope_theta, 
                                         device=device, 
                                         dtype=dtype))

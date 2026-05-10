@@ -27,4 +27,5 @@ def main():
             my_train.main(config)
 
 if __name__ == "__main__":
+    torch.set_float32_matmul_precision('high')
     main()

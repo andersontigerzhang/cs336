@@ -107,7 +107,7 @@ if __name__ == "__main__":
     parser_decode = subparsers.add_parser("decode", help="Decode with model")
     parser_decode.add_argument("--vocab", type=str, default="output/tinystories_vocab.json", help="Vocab file")
     parser_decode.add_argument("--merge", type=str, default="output/tinystories_merges.txt", help="Merge file")
-    parser_decode.add_argument("--input", type=str, default="data/TinyStoriesV2-GPT4-valid.txt", help="Input file")
+    parser_decode.add_argument("--input", type=str, default="Once upon a time", help="Input file")
     parser_decode.add_argument("--model_path", type=str, help="Path to model checkpoint")
     parser_decode.add_argument("--topk", type=int, default=3, help="Top-k sampling (default: 3)")
     parser_decode.add_argument("--max_len", type=int, default=100, help="Top-k sampling (default: 3)")
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     elif args.command == "encode_file":
         encode_file(tokenizer, args)
     elif args.command == "decode":
-        decoded = ecode_file(tokenizer, args)
+        decoded = decode_file(tokenizer, args)
         logging.info(f"Prompt: {args.input}")
         logging.info(f"Decoded:\n{decoded}")
     else:

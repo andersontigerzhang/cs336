@@ -22,7 +22,7 @@ def save_checkpoint(model: torch.nn.Module,
         'iteration': iteration
     }, out)
 
-def run_load_checkpoint(src: str | os.PathLike | BinaryIO | IO[bytes],
+def load_checkpoint(src: str | os.PathLike | BinaryIO | IO[bytes],
                         model: torch.nn.Module,
                         optimizer: torch.optim.Optimizer | None = None) -> int:
     checkpoint = torch.load(src)
