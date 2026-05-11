@@ -213,6 +213,7 @@ class TransformerLM(torch.nn.Module):
                  device: torch.device | None = None,
                  dtype: torch.dtype | None = None):
         super().__init__()
+        self.context_length = context_length
         self.token_embeddings = Embedding(vocab_size, d_model, device=device, dtype=dtype)
         self.layers = torch.nn.Sequential()
         for _ in range(num_layers):
@@ -233,3 +234,28 @@ class TransformerLM(torch.nn.Module):
         x = self.ln_final(x)
         x = self.lm_head(x)
         return x
+
+    @torch.no_grad()
+    def generate(self, x: Int[Tensor, "... batch_size seq_len"], 
+                 max_new_tokens: int,
+                 temperature: float = 1.0,
+                 top_k: int | None = None,
+                 eot_token_id: int = 256) -> Int[Tensor, "... batch_size seq_len max_new_tokens"]:
+        if x.dim() == 1:
+            x = x.unsqueeze_(0)
+        x_len = x.size(-1)
+        for _ in range(max_new_tokens):
+            x = x[:, -self.context_length:] if x.shape[-1] > self.context_length else x
+            logits = self.forward(x)
+            next_token_logits = logits[:, -1, :] / temperature
+            if top_k is not None:
+                topk_values, topk_indices = torch.topk(next_token_logits, k=top_k)
+                threashold = topk_values[:, -1]
+                topk_mask = next_token_logits < threashold
+                next_token_logits.masked_fill_(topk_mask, float('-inf'))
+            probs = torch.nn.functional.softmax(next_token_logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+            if next_token.item() == eot_token_id:
+                break
+            x = torch.cat((x, next_token), dim=-1)
+        return x[:, x_len:]

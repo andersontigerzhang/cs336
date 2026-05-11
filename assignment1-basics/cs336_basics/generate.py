@@ -136,13 +136,5 @@ if __name__ == "__main__":
     prompt = "Once upon a time"
     prompt_ids = torch.tensor(tok.encode(prompt), dtype=torch.int32)
 
-    out_ids = generate(
-        model,
-        prompt_ids,
-        end_token_id=tok.encode(special_token)[0],
-        max_new_tokens=128,
-        temperature=1.0,
-        top_p=0.9,
-    )
-
+    out_ids = model.generate(prompt_ids, args.max_len, temperature=1, top_k=100, eot_token_id=tok.encode(special_token))
     print(tok.decode(out_ids.tolist()))

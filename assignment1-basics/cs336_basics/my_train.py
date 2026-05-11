@@ -134,8 +134,13 @@ def main(config, run_dir):
 
         if (t + 1) % config.train.checkpoint_interval == 0:
             my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
-        my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
+    my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
 
+    # generate
+    prompt = "Once upon a time"
+    prompt_ids = tok.encode(prompt)
+    answer_ids = model.generate(prompt_ids, max_new_tokens=100, eot_token_id=tok.encode("<|endoftext|>"))
+    print(f"with prompt: {prompt}\n:{tok.decode(answer_ids)}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
