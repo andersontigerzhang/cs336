@@ -8,6 +8,8 @@ import yaml
 class DataConfig:
     train_data: Path = field(default_factory=lambda: Path("output/tinystories_train.bin"))
     val_data: Path = field(default_factory=lambda: Path("output/tinystories_valid.bin"))
+    vocab_path: Path = field(default_factory=lambda: Path("output/tinystories_vocab.json"))
+    merge_path: Path = field(default_factory=lambda: Path("output/tinystories_merges.txt"))
 
 
 @dataclass
@@ -74,7 +76,7 @@ class TrainingConfig:
             raw = yaml.safe_load(f)
 
         def convert_value(key: str, value):
-            if key in ("train_data", "val_data", "output_dir", "checkpoint_dir"):
+            if key in ("train_data", "val_data", "vocab_path", "merge_path", "output_dir", "checkpoint_dir"):
                 return Path(value)
             if key == "betas":
                 return tuple(value)

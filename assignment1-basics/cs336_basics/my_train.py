@@ -8,7 +8,7 @@ import json
 import yaml
 from pathlib import Path
 from dataclasses import asdict
-from cs336_basics import my_nn_models, my_optim, my_data, my_nn_functions
+from cs336_basics import my_nn_models, my_optim, my_data, my_nn_functions, tokenizer
 from cs336_basics.config import get_config
 
 
@@ -136,6 +136,7 @@ def main(config, run_dir):
             my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
     my_data.save_checkpoint(model, optimizer, t + 1, checkpoint_file)
 
+    tok = tokenizer.Tokenizer.from_files(config.data.vocab_path, config.data.merge_path)
     # generate
     prompt = "Once upon a time"
     prompt_ids = tok.encode(prompt)
