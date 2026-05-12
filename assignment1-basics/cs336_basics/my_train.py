@@ -139,9 +139,9 @@ def main(config, run_dir):
     tok = tokenizer.Tokenizer.from_files(config.data.vocab_path, config.data.merge_path)
     # generate
     prompt = "Once upon a time"
-    prompt_ids = tok.encode(torch.tensor(prompt_ids))
+    prompt_ids = torch.tensor(tok.encode(prompt))
     answer_ids = model.generate(prompt_ids, max_new_tokens=100, eot_token_id=tok.encode("<|endoftext|>"))
-    print(f"with prompt: {prompt}\n:{tok.decode(answer_ids)}")
+    print(f"with prompt: {prompt}\n:Answer: {tok.decode(torch.squeeze(answer_ids).tolist())}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
