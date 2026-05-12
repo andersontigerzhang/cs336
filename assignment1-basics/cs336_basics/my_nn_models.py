@@ -244,6 +244,7 @@ class TransformerLM(torch.nn.Module):
         if x.dim() == 1:
             x = x.unsqueeze_(0)
         x_len = x.size(-1)
+        x = x.to(device=self.device)
         for _ in range(max_new_tokens):
             x = x[:, -self.context_length:] if x.shape[-1] > self.context_length else x
             logits = self.forward(x)
