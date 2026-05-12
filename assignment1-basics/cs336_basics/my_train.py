@@ -139,7 +139,7 @@ def main(config, run_dir):
     tok = tokenizer.Tokenizer.from_files(config.data.vocab_path, config.data.merge_path)
     # generate
     prompt = "Once upon a time"
-    prompt_ids = tok.encode(prompt)
+    prompt_ids = tok.encode(torch.tensor(prompt_ids))
     answer_ids = model.generate(prompt_ids, max_new_tokens=100, eot_token_id=tok.encode("<|endoftext|>"))
     print(f"with prompt: {prompt}\n:{tok.decode(answer_ids)}")
 
