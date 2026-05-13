@@ -21,6 +21,7 @@ from cs336_basics.train_bpe import train_bpe
 import docopt
 import cProfile
 import logging
+import pickle
 logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
