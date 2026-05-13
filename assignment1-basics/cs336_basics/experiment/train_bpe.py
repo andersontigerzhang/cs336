@@ -42,6 +42,6 @@ if __name__ == '__main__':
     # save_voacb_and_merge(vocab, merges, output_vocab, output_merges)
     with open(output_vocab, 'wb') as f:
       pickle.dump(vocab, f)
-    with open(output_merge, 'wb') as f:
+    with open(output_merges, 'wb') as f:
       pickle.dump(merge, f)
 
