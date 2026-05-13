@@ -43,5 +43,5 @@ if __name__ == '__main__':
     with open(output_vocab, 'wb') as f:
       pickle.dump(vocab, f)
     with open(output_merges, 'wb') as f:
-      pickle.dump(merge, f)
+      pickle.dump(merges, f)
 
