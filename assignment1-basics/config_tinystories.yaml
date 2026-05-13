@@ -36,5 +36,5 @@ train:
   eval_interval: 1000
   checkpoint_interval: 5000
   wandb:
-    enabled: true
+    enabled: false
     project: cs336_hw1

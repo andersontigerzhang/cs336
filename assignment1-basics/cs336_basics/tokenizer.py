@@ -1,6 +1,6 @@
 from typing import Iterable
 import os
-from cs336_basics.utils import get_tokenizer_from_vocab_merges_path
+# from cs336_basics.utils import get_tokenizer_from_vocab_merges_path
 from cs336_basics.train_bpe import text_to_pretoks, init_regex, merge_pair
 from io import BytesIO
 from functools import lru_cache
@@ -15,8 +15,13 @@ class Tokenizer:
 
     @classmethod
     def from_files(cls: type, vocab_path: str | os.PathLike, merges_path: str | os.PathLike, special_tokens: list[str] = None):
-        vocab, merges = get_tokenizer_from_vocab_merges_path(vocab_path, merges_path)
-        return cls(vocab, merges, special_tokens=special_tokens)
+        # vocab, merges = get_tokenizer_from_vocab_merges_path(vocab_path, merges_path)
+        # return cls(vocab, merges, special_tokens=special_tokens)
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+        with open(merge_path_path, 'rb') as f:
+            merge = pickle.load(f)
+        return cls(vocab=vocab,merge=merge,special_tokens=special_tokens)
     
     def encode(self, text: str) -> list[int]:
         # import tracemalloc
