@@ -81,7 +81,7 @@ def decode_file(tokenizer: Tokenizer, args):
     with torch.no_grad():
         for i in range(token_len, args.max_len):
             logits = model(tokens[:,:token_len]) / args.temperature
-            topk_logits, topk_indices = torch.topk(logits[:,-1,:], topk, dim=-1)
+            topk_logits, topk_indices = torch.topk(logits[:,-1,:], topk, dim=-1)    
             probs = my_nn_functions.softmax(topk_logits, dim=-1)
             token = topk_indices.gather(-1, torch.multinomial(probs, 1))
             tokens[:, i] = token.squeeze(-1)
@@ -97,8 +97,8 @@ if __name__ == "__main__":
     parser_calc.add_argument("--input", type=str, default="data/TinyStoriesV2-GPT4-valid.txt", help="Input file")
 
     parser_encode = subparsers.add_parser("encode_file", help="Encode text file to tokens")
-    parser_encode.add_argument("--vocab", type=str, default="output/tinystories_vocab.json", help="Vocab file")
-    parser_encode.add_argument("--merge", type=str, default="output/tinystories_merges.txt", help="Merge file")
+    parser_encode.add_argument("--vocab", type=str, default="output/tinystories_vocab.pkl", help="Vocab file")
+    parser_encode.add_argument("--merge", type=str, default="output/tinystories_merges.pkl", help="Merge file")
     parser_encode.add_argument("--input", type=str, default="data/TinyStoriesV2-GPT4-valid.txt", help="Input text file")
     parser_encode.add_argument(
         "--output", type=str, default="output/tinystories_valid.bin", help="Output binary token file"
