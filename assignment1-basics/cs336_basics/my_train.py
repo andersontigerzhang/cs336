@@ -8,8 +8,9 @@ import json
 import yaml
 from pathlib import Path
 from dataclasses import asdict
-from cs336_basics import my_nn_models, my_optim, my_data, my_nn_functions, tokenizer
+from cs336_basics import my_optim, my_data, my_nn_functions, tokenizer
 from cs336_basics.config import get_config
+from cs336_basics.model import BasicsTransformerLM as TransformerLM
 
 
 def set_all_seed(seed: int = 42) -> None:
@@ -65,7 +66,7 @@ def main(config, run_dir):
         with open(run_config, "w") as f:
             yaml.dump(asdict(config), f, indent=2)
 
-    model = my_nn_models.TransformerLM(
+    model = TransformerLM(
         config.model.vocab_size,
         config.model.context_length,
         config.model.d_model,
@@ -73,8 +74,8 @@ def main(config, run_dir):
         config.model.num_heads,
         d_ff=config.model.d_ff,
         rope_theta=config.model.rope_theta,
-        device=device,
-        dtype=my_dtype,
+        # device=device,
+        # dtype=my_dtype,
     )
     # model = torch.compile(model)
     optimizer = my_optim.AdamW(
